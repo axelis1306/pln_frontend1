@@ -132,4 +132,4 @@ $autoload['language'] = array();
 |
 |	$autoload['model'] = array('first_model' => 'first');
 */
-$autoload['model'] = array('M_Auth', 'M_Menu', 'M_Report', 'M_Admin'); //BUAT NGE LOAD MODEL JANGAN LUPA BANGSAT
+$autoload['model'] = array('M_Auth', 'M_Menu', 'M_Report', 'M_Admin', 'M_Planning'); //BUAT NGE LOAD MODEL JANGAN LUPA BANGSAT
