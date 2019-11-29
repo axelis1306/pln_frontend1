@@ -1,0 +1,24 @@
+.badge-gold {
+	color: #212529;
+	background-color: #FFDF00;
+}
+
+.badge-platinum {
+	color: #212529;
+	background-color: #e5e4e2
+}
+
+.badge-bronze {
+	color: #ffffff;
+	background-color: #cd7f32
+}
+
+.badge-silver {
+	color: #1a1818;
+	background-color: #C0C0C0
+}
+
+.badge-energizing {
+	color: #fff;
+	background-color: #3fb65b
+}
