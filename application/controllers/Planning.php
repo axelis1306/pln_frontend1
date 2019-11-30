@@ -280,7 +280,99 @@ class Planning extends CI_Controller
         }
     }
 
-    //Fungsi Input Pake Excel 
+        public function ajax_add() //Fungsi Input Pake Excel
+    {
+        // NGAMBIL NAMA FILE YANG DI UPLOAD SAMA NGASIH STRING RANDOM
+        $file_potential = substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZqwertyuiopasdfghjklzxcvbnm'), 1, 8) . str_replace(' ', '_', $_FILES['file_excel']['name']);
+
+        //KONFIGURASU UPLOAD
+        $config['upload_path'] = realpath('./assets/docs/temp');
+        $config['allowed_types'] = 'xlsx';
+
+        $config['file_name'] = $file_potential;
+        $this->upload->initialize($config);
+
+        // CEK KALO UPLOAD ERROR
+        if (!$this->upload->do_upload('file_excel')) {
+            // echo json_encode(['status' => 'error']);
+            $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">
+                Failed to input data!</div>');
+            redirect('planning/addPotencial');
+            return;
+        }
+
+        //BIKIN OBJECT READER XLSX
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+
+        //LOKASI FILE YANG UDAH DI UPLOAD
+        $spreadsheet = $reader->load('./assets/docs/temp/' . $file_potential);
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        $rows = [];
+        // LOOPING DI SETIAP BARIS
+        foreach ($worksheet->getRowIterator() as $row) {
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false); // KALO DI FALSE, DIA BAKAL LOOP KE SEMUAL CELL. KALO DI TRUE CUMAN BAKAL LOOP DI CELL YANG ADA ISINYA
+            $cells = [];
+            //LOOP DI SETIAP KOLOM DI BARIS
+            foreach ($cellIterator as $cell) {
+                $cells[] = $cell->getValue();
+            }
+
+            //ARRAY NYA DI MASUKIN KE ARRAY JADI ENTAR HASILNYA ARRAY 2D
+            $rows[] = $cells;
+        }
+        $tariff = $this->M_Planning->getTariff();
+        $service = $this->M_Planning->getService();
+        $substation = $this->M_Planning->getSubstation();
+        $feeder_substation = $this->M_Planning->getFeederSubstation();
+
+        // BIKIN ARRAY BARU BUAT MINDAH HASILNYA KALO PERLU
+        $kor = [];
+        $i = 0;
+        foreach ($rows as $r) {
+            //KALO PAKE HEADER skip pertama
+            if ($i++ == 0) continue;
+
+            $tarif = $this->M_Planning->getIdTariffByTariff($r[2]);
+            $tarif = ($tarif[0]['id_tariff']);
+            $substas = $this->M_Planning->getSubstationBySubstation($r[5]);
+            $substas = ($substas[0]['id_substation']);
+            $feeder = $this->M_Planning->getFeederSubstationByFeederSubstation($r[6]);
+            $feeder = $feeder[0]['id_feeder_substation'];
+            $service = $this->M_Planning->getServiceByService($r[9]);
+            $service = $service[0]['id_type_of_service'];
+            $kor[] = [
+                'name_customer' => $r[0],
+                'id_customer' => $r[1],
+                'id_tariff' => $tarif,
+                'power' => $r[3],
+                'address_customer' => $r[4],
+                'id_substation' => $substas,
+                'id_feeder_substation' => $feeder,
+                'subsistem' => $r[7],
+                'bep_value' => $r[8],
+                'id_type_of_service' => $service,
+                'id_status' => 1,
+                'id_information' => 1
+            ];
+        }
+        //HAPUS FILE YANG UDAH DI UPLOAD TADI
+        unlink(realpath('./assets/docs/temp//') . '\\' . $file_potential);
+        // PAKE INI KALO MAU LIAT OUTPUT JSON NYA
+        // print_r($kor);
+
+        //PAKE INI KALO MAU INPUT KE DB SEKALIGUS
+        $this->db->insert_batch('potencial_customer', $kor);
+        $this->db->insert_batch('customer', $kor);
+
+        // INI BUAT STATUS AJA
+        // echo json_encode(array('status' => true));
+        $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">
+                Data has been added!</div>');
+        redirect('planning/dataForReksis');
+    }
+	
     
 
     public function addReksis($id_customer)
