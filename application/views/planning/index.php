@@ -33,4 +33,43 @@
 </div>
 <!-- End of Main Content -->
 
-<!-- script -->
+<script>
+    var ling = "<?= base_url() ?>";
+    $(document).ready(function() {
+        $('#cust-potencial').DataTable({
+            'destroy': true,
+            "pageLength": 10,
+            "scrollX": true,
+            "ajax": {
+                url: ling + 'planning/getMonitoringList',
+                type: 'GET'
+            },
+            'columns': [{
+                    'data': 'no'
+                },
+                {
+                    'data': 'name_customer'
+                },
+                {
+                    'data': 'id_customer'
+                },
+                {
+                    'data': 'tariff/daya'
+                },
+                {
+                    'data': 'type_of_service'
+                },
+                {
+                    'data': 'status'
+                },
+                {
+                    'data': 'btn'
+                }
+
+            ],
+
+        });
+
+
+    });
+</script>
